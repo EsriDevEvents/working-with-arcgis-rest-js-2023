@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ArcGIS REST JS Making a request</title>
+  </head>
+  <body>
+    <p><strong>Request:</strong></p>
+    <code>
+      <pre style="white-space: wrap;">waiting response...</pre>
+    </code>
+    <script type="module">
+      import { getItem } from 'https://cdn.skypack.dev/@esri/arcgis-rest-portal@4.4.0';
+
+      const item = await getItem("b8f4033069f141729ffb298b7418b653");
+      const { title, owner, thumbnail } = item;
+
+      document.querySelector("pre").innerHTML = `
+        title: ${title}<br/>
+        owner: ${owner}<br/>
+        thumbnail: ${thumbnail}<br/>
+      `;
+    </script>
+
+  </body>
+</html>
+
+
+    

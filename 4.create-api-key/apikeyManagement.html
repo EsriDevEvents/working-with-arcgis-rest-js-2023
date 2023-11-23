@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>dev-credentials client</title>
+  <!--    bootstrap-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+<body>
+  <div id="content" class="container" style="display: none">
+    <button id="signOut" type="button" class="btn btn-primary mt-3">sign out</button>
+    
+    <form id="form" novalidate>
+      <div class="card mt-4">
+        <h5 class="card-header">Create Key</h5>
+        <div class="card-body">
+          <h5 id="pageTitle" class="card-title"></h5>
+          <div class="mb-3">
+            <label for="privileges" class="form-label">Privileges</label>
+            <select class="form-select" id="privileges" multiple="multiple"></select>
+          </div>
+          <div class="row mb-3" id="titleAndDesc">
+            <div class="col-md-6">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" id="title" required>
+              <div class="invalid-feedback">
+                Please provide a non-empty title.
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="desc" class="form-label">Description</label>
+              <input type="text" class="form-control" id="desc">
+            </div>
+          </div>
+          <button id="createKey" type="submit" class="btn btn-primary">Create</button>
+          <button id="deleteButton" type="button" class="btn btn-danger" style="display: none">Delete</button>
+        </div>
+      </div>
+    </form>
+    
+    <div class="card mt-4">
+      <h5 class="card-header">Details</h5>
+      <div class="card-body">
+        <p class="card-text"></p>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module">
+    import {
+      Privileges,
+      createApiKey,
+    } from "https://cdn.skypack.dev/@esri/arcgis-rest-developer-credentials";
+    
+    import { ArcGISIdentityManager } from "https://cdn.skypack.dev/@esri/arcgis-rest-request@4.2.0";
+    
+    let session;
+    const clientId = "yG7PFuubN5OyLqGy";
+    const host = window.location.href.split("/").slice(0,-1).join("/");
+    const redirectUri = host + "/apikeyManagement.html";
+    
+    let serializedSession = localStorage.getItem("__ARCGIS_REST_USER_SESSION__");
+    
+    const clearSession = () => {
+      session.signOut();
+      localStorage.removeItem("__ARCGIS_REST_USER_SESSION__");
+      location.replace(host + "/index.html");
+    };
+    
+    if (serializedSession === null || serializedSession === "undefined") {
+      // Empty session (not signed in) needs complete sign in
+      ArcGISIdentityManager.completeOAuth2({
+        popup: false,
+        clientId: clientId,
+        redirectUri: redirectUri
+      })
+      .then((manager) => {
+        serializedSession = manager.serialize();
+        localStorage.setItem("__ARCGIS_REST_USER_SESSION__", serializedSession);
+        initUI(manager);
+      })
+      .catch(e => {
+        // Failed completeOAuth2 needs re-direct to sign in page
+        console.log("Error:", e);
+        location.replace(host + "/index.html");
+      });
+    } else{
+      initUI();
+    }
+    
+    
+    function initUI(manager = null){
+      session = manager? manager: ArcGISIdentityManager.deserialize(serializedSession);
+      const tokenRemainingTime =
+      session.tokenExpires.getTime() - new Date().getTime(); // in seconds
+      
+      if (tokenRemainingTime <= 0) {
+        clearSession();
+      }
+      setTimeout(clearSession, tokenRemainingTime * 1000);
+      
+      // active session (signed in)
+      document.getElementById("content").style.display = "block";
+      
+      const pageTitleElement = document.getElementById("pageTitle");
+      const privilegesElement = document.getElementById("privileges");
+      const titleElement = document.getElementById("title");
+      const descElement = document.getElementById("desc");
+      const signOutElement = document.getElementById("signOut");
+      const paragraphElement = document.querySelector("p");
+      const inputForm = document.getElementById("form");
+      
+      pageTitleElement.innerHTML = `APIKey Management (signed in as: ${session.username})`;
+      
+      // populate user's privileges into multi-select input
+      const privilegesSelectOptions = Object.keys(Privileges);
+      privilegesSelectOptions.forEach((val, idx) => {
+        privilegesSelectOptions[idx] = `<option value="${val}">${val}</option>`;
+      });
+      privilegesElement.innerHTML = privilegesSelectOptions.join("");
+      
+      let getSelectValues = select => {
+        var result = [];
+        var options = select && select.options;
+        var opt;
+        
+        for (var i=0, iLen=options.length; i<iLen; i++) {
+          opt = options[i];
+          
+          if (opt.selected) {
+            result.push(opt.value || opt.text);
+          }
+        }
+        return result;
+      }
+      
+      inputForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        let selectedPrivileges = getSelectValues(privilegesElement);
+        selectedPrivileges = selectedPrivileges.map(el => Privileges[el])
+        
+        // create/edit button click
+        try {  
+          if (!titleElement.checkValidity()) {
+            titleElement.classList.add("is-invalid");
+            return false;
+          }
+          titleElement.classList.remove("is-invalid");
+          
+          const title = titleElement.value;
+          const desc = descElement.value;
+          
+          const option = {
+            authentication: session,
+            title: title,
+            description: desc,
+            // httpReferrers: selectedReferrers,
+            privileges: selectedPrivileges
+          };
+          const apiKeyInfo = await createApiKey(option);
+          paragraphElement.innerHTML = `<pre><code>${JSON.stringify(
+            apiKeyInfo,
+            null,
+            2
+            )}</code></pre>`;
+          } catch (e) {
+            console.log(e);
+            alert("Check console output for error");
+          }
+        });
+        
+        signOutElement.addEventListener("click", clearSession);
+        
+      }
+      
+      
+    </script>
+  </body>
+  </html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Request example using Skypack</title>
+  </head>
+  <body>
+    <p><strong>Request:</strong></p>
+    <code>
+      <pre style="white-space: wrap;">waiting response...</pre>
+    </code>
+    <script type="module">
+      import { request } from 'https://cdn.skypack.dev/@esri/arcgis-rest-request@4.2.0';
+
+      const result = await request("https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/MODIS_Thermal_v1/FeatureServer/0/query", {
+        params:{
+          f: "json",
+          where: "1=1",
+          outFields: "*"
+        }
+      });
+
+      document.querySelector("pre").innerHTML = JSON.stringify(result);
+    </script>
+
+  </body>
+</html>
+
+
+    

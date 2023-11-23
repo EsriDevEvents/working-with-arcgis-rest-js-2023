@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, maximum-scale=1,user-scalable=no"
+    />
+    <title>Access ArcGIS Online items using @esri/arcgis-rest-auth</title>
+
+  
+    <style>
+      html,
+      body {
+        font-size: 14px;
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+      }
+
+      .esri-item-gallery .esri-item-container {
+        float: left;
+        text-align: center;
+        padding: 10px;
+        width: 204px;
+        display: inline-block;
+      }
+
+      .esri-item-gallery .esri-image {
+        width: 200px;
+        height: 133px;
+        border: 2px solid gray;
+        border-radius: 5px;
+      }
+
+      .esri-item-gallery .esri-null-image {
+        line-height: 133px;
+        text-align: center;
+        color: #999999;
+      }
+
+      .esri-item-gallery .esri-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .esri-item-gallery .esri-null-title {
+        color: #999999;
+      }
+
+      .action {
+        color: blue;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    </style>
+    <script type="module">
+
+      import { ArcGISIdentityManager } from 'https://cdn.skypack.dev/@esri/arcgis-rest-request@4.2.0';
+      import { searchItems } from 'https://cdn.skypack.dev/@esri/arcgis-rest-portal@4.4.0';
+
+      window.addEventListener('DOMContentLoaded', () => {
+        var personalPanelElement = document.getElementById("personalizedPanel");
+        var anonPanelElement = document.getElementById("anonymousPanel");
+        var userIdElement = document.getElementById("userId");
+
+        var info = {
+          // Swap this ID out with registered application ID
+          clientId: 'yG7PFuubN5OyLqGy',
+          redirectUri: "http://127.0.0.1:5500/dseu23/3.simple-oauth-example/redirect.html",
+          popup: false
+        };
+
+        var session = checkSignInStatus();
+
+        if (session) {          
+          displayItems();
+        } else {
+          // Anonymous view
+          anonPanelElement.style.display = "block";
+          personalPanelElement.style.display = "none";
+        }
+
+        document
+          .getElementById("sign-in")
+          .addEventListener("click", function() {
+            // user will be redirected to OAuth Sign In page
+            ArcGISIdentityManager.beginOAuth2(info);
+          });
+
+        document
+          .getElementById("sign-out")
+          .addEventListener("click", function() {
+            destroyCredentials();
+            window.location.reload();
+          });
+
+        function displayItems() {
+          userIdElement.innerHTML = session.username;
+          anonPanelElement.style.display = "none";
+          personalPanelElement.style.display = "block";
+
+          searchItems({
+            authentication: session,
+            q: "owner:" + session.username,
+            sortField: "numViews",
+            sortOrder: "desc",
+            num: 20
+          }).then(createGallery);
+        }
+
+        function createGallery(items) {
+          var htmlFragment = "";
+
+          items.results.forEach(function(item) {
+            // NOTE: rest-js doesn't (yet) decorate the item w/ the thumbnailUrl
+            // see: https://github.com/Esri/arcgis-rest-js/issues/333
+            var thumbnailUrl = item.thumbnail && 'https://www.arcgis.com/sharing/rest/content/items/' + item.id + '/info/' + item.thumbnail + '?f=json&token=' + session.token;
+            htmlFragment +=
+              '<div class="esri-item-container">' +
+              (thumbnailUrl
+                ? '<div class="esri-image" style="background-image:url(' +
+                  thumbnailUrl +
+                  ');"></div>'
+                : '<div class="esri-image esri-null-image">Thumbnail not available</div>') +
+              (item.title
+                ? '<div class="esri-title">' + (item.title || "") + "</div>"
+                : '<div class="esri-title esri-null-title">Title not available</div>') +
+              "</div>";
+          });
+          document.getElementById("itemGallery").innerHTML = htmlFragment;
+        }
+
+        // NOTE: arcgis-rest-js doesn't have opinions on how you store the OAuth credentials
+        // so we have to provide our own functions for how to retrieve and clear the credentials
+        function checkSignInStatus() {
+          var session;
+          // Check to see if there is a serialized session in local storage.
+          // NOTE: there is nothing special about this key,
+          // it just needs to match what we set in redirect.html
+          var serializedSession = localStorage.getItem('__ARCGIS_REST_USER_SESSION__');
+          
+          if (serializedSession !== null && serializedSession !== "undefined") {
+            // If there is a serialized session, parse it and create a new session object.
+            let parsed = JSON.parse(serializedSession);
+            // Cast the tokenExpires property back into a date.
+            parsed.tokenExpires = new Date(parsed.tokenExpires);
+            parsed.refreshTokenExpires = new Date(parsed.refreshTokenExpires);
+            // Create the new session object.
+            // session = new arcgisRest.UserSession(parsed);
+            session = new ArcGISIdentityManager(parsed)
+          }
+          return session;
+        }
+
+        function destroyCredentials() {
+          // Clear the previous session.
+          localStorage.removeItem('__ARCGIS_REST_USER_SESSION__');
+        }
+      });
+    </script>
+  </head>
+
+  <body>
+    <div
+      id="anonymousPanel"
+      style="display: none; padding: 5px; text-align: center;"
+    >
+      <span id="sign-in" class="action">Sign In</span> and view your ArcGIS
+      Online items.
+    </div>
+
+    <div
+      id="personalizedPanel"
+      style="display: none; padding: 5px; text-align: center;"
+    >
+      Welcome <span id="userId" style="font-weight: bold;"></span> &nbsp;-&nbsp;
+      <span id="sign-out" class="action">Sign Out</span>
+    </div>
+
+    <div id="itemGallery" class="esri-item-gallery" style="width: 100%;"></div>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OAuth Sign In</title>
+</head>
+<body>
+
+<script type="module">
+    import { ArcGISIdentityManager } from "https://cdn.skypack.dev/@esri/arcgis-rest-request@4.2.0";
+
+    const clientId = "yG7PFuubN5OyLqGy";
+    const host = window.location.href.split("/").slice(0,-1).join("/");
+    const redirectUri = host + "/apikeyManagement.html";
+    ArcGISIdentityManager.beginOAuth2({
+        popup: false,
+        clientId: clientId,
+        redirectUri: redirectUri
+    });
+</script>
+</body>
+</html>

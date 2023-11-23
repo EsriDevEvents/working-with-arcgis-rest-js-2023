@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Request example using UNPKG</title>
+    <script src="https://unpkg.com/@esri/arcgis-rest-request@4.2.0/dist/bundled/request.umd.min.js"></script>
+  </head>
+  <body>
+    <p><strong>Request:</strong></p>
+    <code>
+      <pre style="white-space: wrap;">waiting response...</pre>
+    </code>
+    <script>
+      const { request } = globalThis.arcgisRest;
+      
+      request("https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/MODIS_Thermal_v1/FeatureServer/0/query", {
+        params:{
+          f: "json",
+          where: "1=1",
+          outFields: "*"
+        }
+      }).then( result => document.querySelector("pre").innerHTML = JSON.stringify(result));
+
+      
+    </script>
+
+  </body>
+</html>
+
+
+    

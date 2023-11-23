@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ArcGIS Rest JS OAuth redirect</title>
+  </head>
+  <body>
+
+    <script type="module">
+      import { ArcGISIdentityManager } from 'https://cdn.skypack.dev/@esri/arcgis-rest-request@4.2.0';
+
+      const clientId = "yG7PFuubN5OyLqGy";
+      const redirectUri = "http://127.0.0.1:5500/dseu23/3.simple-oauth-example/redirect.html";
+
+      let session = await ArcGISIdentityManager.completeOAuth2({
+        clientId,
+        redirectUri
+      });
+
+      // make the session available to the main page and redirect back there
+      localStorage.setItem('__ARCGIS_REST_USER_SESSION__', session.serialize());
+      window.location.href = './';
+
+    </script>
+
+  </body>
+</html>
+
+
+    

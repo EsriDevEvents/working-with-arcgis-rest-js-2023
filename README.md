@@ -6,6 +6,10 @@ ArcGIS REST JS is an open-source, compact, and easy-to-use wrapper around the Ar
 
 Most of the slides are made available at [Esri Events > Proceedings](https://www.esri.com/en-us/about/events/index/proceedings).
 
+## Get started
+
+Each folder contain a demo, please check the README.md file and run npm install if there is a `package.json` file on it.
+
 ## Related sessions
 
 * [Building Web Apps with Open Source Mapping APIs](https://registration.esri.com/flow/esri/23eurdev/eventportal/page/detailed-agenda/session/1695631942632001Nb8K)
