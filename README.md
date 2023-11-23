@@ -10,7 +10,7 @@ Most of the slides are made available at [Esri Events > Proceedings](https://www
 
 Each folder contain a demo, please check the README.md file and run npm install if there is a `package.json` file on it.
 
-## Related sessions
+## Related recordings
 
-* [Building Web Apps with Open Source Mapping APIs](https://registration.esri.com/flow/esri/23eurdev/eventportal/page/detailed-agenda/session/1695631942632001Nb8K)
-* [An Introduction to ArcGIS API for Python](https://registration.esri.com/flow/esri/23eurdev/eventportal/page/detailed-agenda/session/1693001260439001kAL7)
+* [Working with the ArcGIS REST JS, DevSummit, March 2023](https://mediaspace.esri.com/media/t/1_3vf9c4s1/292702072)
+* All [ArcGIS REST JS videos](https://mediaspace.esri.com/channel/ArcGIS%2BREST%2BJS/259237462)
